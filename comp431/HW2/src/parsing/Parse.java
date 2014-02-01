@@ -2,30 +2,50 @@ package parsing;
 
 public class Parse {
 
-	private boolean dataSeen=false;
+	private boolean dataCommandUnseen=true;
 	/*main parse method that checks from left to right
 	 * the correctness of the mail from command.
 	 */
-	public void parseInput(String input,String command) {
+	public ParsedObject parseInput(String input,String command) {
 			
 			//handles if first input is null
 			if(input==null){
-				return;
+				return null;
 			}
 			//send to appropriate method based
 			//on type of command
-			if(command=="DATA"){
-				parseData(input);
+			if(command.equals("DATA")){
+				return parseData(input);
+			}else if (command.equals("From: ")|| command.equals("To: ")){
+				return parseCommand(input,command);
 			}else{
-				parseCommand(input,command);
+				return null;
+			}
+	}
+	
+	private ParsedObject parseData(String data){
+		if(dataCommandUnseen){
+			if(data.trim().equals("DATA")){
+				dataCommandUnseen=false;
+				System.out.println(data);
+				displayResults(4);
+				return new ParsedObject(true,"firstData");
+			}else{
+				displayResults(1);
+				return new ParsedObject(false,"");
 			}	
+		}else{
+			if(data.equals(".")){
+				dataCommandUnseen=true;
+				displayResults(0);
+				return new ParsedObject(true,".");
+			}else{
+				return new ParsedObject(true,data);
+			}
+		}
 	}
 	
-	private void parseData(String data){
-		
-	}
-	
-	private void parseCommand(String input,String command){
+	private ParsedObject parseCommand(String input,String command){
 		//print input first
 		System.out.println(input);
 		
@@ -76,26 +96,34 @@ public class Parse {
 								//method for looping through domain parts
 								if(checkDomain(domain)){
 									displayResults(0);
+									return new ParsedObject(true,command+path);
 								}else{
 									displayResults(2);
+									return new ParsedObject(false,"");
 								}	
 							}else{
 								displayResults(2);
+								return new ParsedObject(false,"");
 							}
 						}else{
 							displayResults(2);
+							return new ParsedObject(false,"");
 						}
 					}else{
 						displayResults(2);
+						return new ParsedObject(false,"");
 					}
 				}else{
 					displayResults(2);
+					return new ParsedObject(false,"");
 				}	
 			}else{
-				displayResults(1);	
+				displayResults(1);
+				return new ParsedObject(false,"");
 			}
 		}else{
 			displayResults(1);
+			return new ParsedObject(false,"");
 		}
 	}
 	
@@ -141,9 +169,10 @@ public class Parse {
 			System.out.println("500 Syntax error: command unrecognized");
 		}else if( tokenCode==2){
 			System.out.println("501 Syntax error in parameters or arguments");
+		}else if(tokenCode==4){
+			System.out.println("354 Start mail input; end with <CRLF>.<CRLF>");
 		}else{
 			return;
 		}
-		
 	}
 }
