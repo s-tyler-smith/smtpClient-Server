@@ -56,7 +56,6 @@ public class Parse {
 				 * into whether or not it should be case insensitive
 				 * but the grammar uses uppercase so that's what I used
 				 */
-				System.out.println(splitInput[0]);
 				if (splitInput[0].equals("MAIL FROM")) {
 					//trim white space since grammar is ambiguous 
 					String path=splitInput[1].trim();
