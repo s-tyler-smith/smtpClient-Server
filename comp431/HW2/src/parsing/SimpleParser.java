@@ -1,6 +1,6 @@
 package parsing;
 
-public class Parse {
+public class SimpleParser {
 
 	private boolean dataCommandUnseen=true;
 	/*main parse method that checks from left to right
@@ -14,9 +14,10 @@ public class Parse {
 			}
 			//send to appropriate method based
 			//on type of command
+			
 			if(command.equals("DATA")){
 				return parseData(input);
-			}else if (command.equals("From: ")|| command.equals("To: ")){
+			}else if (command.equals("MAIL FROM:")|| command.equals("RCPT TO:")){
 				return parseCommand(input,command);
 			}else{
 				return null;
@@ -64,7 +65,7 @@ public class Parse {
 			 * into whether or not it should be case insensitive
 			 * but the grammar uses uppercase so that's what I used
 			 */
-			System.out.println(splitInput[0]);
+
 			if (splitInput[0].equals(command)) {
 				//trim white space since grammar is ambiguous 
 				String path=splitInput[1].trim();
@@ -96,7 +97,11 @@ public class Parse {
 								//method for looping through domain parts
 								if(checkDomain(domain)){
 									displayResults(0);
-									return new ParsedObject(true,command+path);
+									if(command.equals("MAIL FROM:")){
+										return new ParsedObject(true,"From: "+path);
+									}else{
+										return new ParsedObject(true,"To: "+path);
+									}	
 								}else{
 									displayResults(2);
 									return new ParsedObject(false,"");

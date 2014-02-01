@@ -2,8 +2,8 @@ package parsing;
 
 public class ParsedObject {
 
-	public boolean successfulParse;
-	public String infoString;
+	private boolean successfulParse;
+	private String infoString;
 
 	public ParsedObject(boolean initSuccess, String initInfo) {
 		if (initInfo != null) {
