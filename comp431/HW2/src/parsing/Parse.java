@@ -18,8 +18,7 @@ public class Parse {
 				parseData(input);
 			}else{
 				parseCommand(input,command);
-			}
-			
+			}	
 	}
 	
 	private void parseData(String data){
@@ -78,16 +77,16 @@ public class Parse {
 								if(checkDomain(domain)){
 									displayResults(0);
 								}else{
-									displayResults(5);
+									displayResults(2);
 								}	
 							}else{
-								displayResults(5);
+								displayResults(2);
 							}
 						}else{
-							displayResults(4);
+							displayResults(2);
 						}
 					}else{
-						displayResults(3);
+						displayResults(2);
 					}
 				}else{
 					displayResults(2);
@@ -136,29 +135,15 @@ public class Parse {
 	
 	//helper method that prints out results based code
 	private static void displayResults(int tokenCode){
-		if(tokenCode<0){
+		if (tokenCode==0){
+			System.out.println("250 ok");
+		}else if (tokenCode==1){
+			System.out.println("500 Syntax error: command unrecognized");
+		}else if( tokenCode==2){
+			System.out.println("501 Syntax error in parameters or arguments");
+		}else{
 			return;
 		}
-		switch(tokenCode){
-			case 0:
-				System.out.println("250 ok");
-				break;
-			case 1:
-				System.out.println("ERROR -- mail-from-cmd");
-				break;
-			case 2:
-				System.out.println("ERROR -- path");
-				break;
-			case 3:
-				System.out.println("ERROR -- mailbox");
-				break;
-			case 4:
-				System.out.println("ERROR -- local-part");
-				break;
-			case 5:
-				System.out.println("ERROR -- domain");
-				break;		
-		}
+		
 	}
 }
-
