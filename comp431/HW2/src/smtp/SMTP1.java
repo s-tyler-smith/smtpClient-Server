@@ -3,10 +3,12 @@ package smtp;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 
 public class SMTP1 {
 
 	private static int recipients = 0;
+	private static ArrayList<String>emailInfo; 
 
 	private enum ProtocalState {MAILFROMSTATE, RCPT_TOSTATE, DATA};
 
@@ -14,13 +16,13 @@ public class SMTP1 {
 		// variable for line of input
 		String nextLine = "";
 
-		// create parser object
-		//
 
 		// create protocal enum for state changes
 		// begins in MAILFROM state
 		ProtocalState state = ProtocalState.MAILFROMSTATE;
-
+		
+		//create 
+		emailInfo=new ArrayList<String>();
 		// buffer for reading input
 		BufferedReader myBuffer = new BufferedReader(new InputStreamReader(
 				System.in));
@@ -37,7 +39,7 @@ public class SMTP1 {
 				e.printStackTrace();
 			}
 			state = parseInput(nextLine, state);
-			System.out.println(state.toString());
+			//System.out.println(state.toString());
 		} while (nextLine != null);
 	}
 
@@ -51,11 +53,17 @@ public class SMTP1 {
 			if (input.equals(".")) {
 				displayResults(0);
 				// write array to file
-
+				writeToFile(emailInfo);
+				
+				//reset mail objects for new message
+				emailInfo.clear();
+				recipients=0;
+				
 				// change state back to MAILFROMSTATE
 				return ProtocalState.MAILFROMSTATE;
 			} else {
 				// add to array
+				emailInfo.add(input);
 				return currentState;
 			}
 
@@ -147,6 +155,7 @@ public class SMTP1 {
 		// method for looping through domain parts
 		if (checkDomain(domain)) {
 			displayResults(0);
+			emailInfo.add("To: "+path);
 			// add RCPT TO:
 			recipients++;
 			return currentState;
@@ -231,11 +240,22 @@ public class SMTP1 {
 		if (checkDomain(domain)) {
 			displayResults(0);
 			// add From: path
+			emailInfo.add("From: "+path);
 			return ProtocalState.RCPT_TOSTATE;
 		} else {
 			displayResults(2);
 			return currentState;
 		}
+	}
+	
+	private static void writeToFile(ArrayList<String> emailInfo){
+		if(emailInfo.size()<1){
+			return;
+		}
+		for(int i=0;i<emailInfo.size();i++){
+			System.out.println(emailInfo.get(i));
+		}
+		
 	}
 
 	/*
