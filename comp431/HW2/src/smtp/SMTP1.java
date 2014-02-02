@@ -11,7 +11,7 @@ public class SMTP1 {
 	private static ArrayList<String>emailInfo; 
 
 	private enum ProtocalState {MAILFROMSTATE, RCPT_TOSTATE, DATA};
-	private enum Results{OK,BEGINDATA,WRONGORDER,CMDNOTRECOGNIZED,BADFORM}
+	private enum PrintResults{OK,BEGINDATA,WRONGORDER,CMDNOTRECOGNIZED,BADFORM}
 
 	public static void main(String[] args) {
 		// variable for line of input
@@ -52,7 +52,7 @@ public class SMTP1 {
 		if (currentState == ProtocalState.DATA) {
 
 			if (input.equals(".")) {
-				displayResults(Results.OK);
+				displayResults(PrintResults.OK);
 				// write array to file
 				writeToFile(emailInfo);
 				
@@ -81,10 +81,10 @@ public class SMTP1 {
 			ProtocalState currentState) {
 		if (input.equals("DATA")) {
 			if (recipients > 0) {
-				displayResults(Results.BEGINDATA);
+				displayResults(PrintResults.BEGINDATA);
 				return ProtocalState.DATA;
 			} else {
-				displayResults(Results.WRONGORDER);
+				displayResults(PrintResults.WRONGORDER);
 				return currentState;
 			}
 		}
@@ -97,19 +97,19 @@ public class SMTP1 {
 		 * the 'path'
 		 */
 		if (splitInput.length != 2) {
-			displayResults(Results.CMDNOTRECOGNIZED);
+			displayResults(PrintResults.CMDNOTRECOGNIZED);
 			return currentState;
 		}
 
 		String cmd = splitInput[0];
 
 		if (cmd.equals("MAIL FROM")) {
-			displayResults(Results.WRONGORDER);
+			displayResults(PrintResults.WRONGORDER);
 			return currentState;
 		}
 
 		if (!cmd.equals("RCPT TO")) {
-			displayResults(Results.CMDNOTRECOGNIZED);
+			displayResults(PrintResults.CMDNOTRECOGNIZED);
 			return currentState;
 		}
 
@@ -118,7 +118,7 @@ public class SMTP1 {
 
 		// check for angle brackets are at the beginning and end
 		if (!(path.length()>0 && path.charAt(0) == '<' && path.charAt(path.length() - 1) == '>')) {
-			displayResults(Results.BADFORM);
+			displayResults(PrintResults.BADFORM);
 			return currentState;
 		}
 
@@ -127,7 +127,7 @@ public class SMTP1 {
 
 		// length should equal two
 		if (!(splitInput.length == 2)) {
-			displayResults(Results.BADFORM);
+			displayResults(PrintResults.BADFORM);
 			return currentState;
 		}
 
@@ -138,7 +138,7 @@ public class SMTP1 {
 		// characters
 		if (!(pathPart.matches("[^<>()\\.,\\\\:@;\\s\\[\\]\"]+") && pathPart
 				.matches("[\\p{ASCII}]*"))) {
-			displayResults(Results.BADFORM);
+			displayResults(PrintResults.BADFORM);
 			return currentState;
 		}
 
@@ -150,18 +150,18 @@ public class SMTP1 {
 
 		// check if there at least something a two character long domain
 		if (!(domain[0].trim().length() >= 2)) {
-			displayResults(Results.BADFORM);
+			displayResults(PrintResults.BADFORM);
 			return currentState;
 		}
 		// method for looping through domain parts
 		if (checkDomain(domain)) {
-			displayResults(Results.OK);
+			displayResults(PrintResults.OK);
 			emailInfo.add("To: "+path);
 			// add RCPT TO:
 			recipients++;
 			return currentState;
 		} else {
-			displayResults(Results.BADFORM);
+			displayResults(PrintResults.BADFORM);
 			return currentState;
 		}
 	}
@@ -169,7 +169,7 @@ public class SMTP1 {
 	private static ProtocalState checkMailFrom(String input,
 			ProtocalState currentState) {
 		if (input.equals("DATA")) {
-			displayResults(Results.WRONGORDER);
+			displayResults(PrintResults.WRONGORDER);
 			return currentState;
 		}
 
@@ -181,19 +181,19 @@ public class SMTP1 {
 		 * the 'path'
 		 */
 		if (splitInput.length != 2) {
-			displayResults(Results.CMDNOTRECOGNIZED);
+			displayResults(PrintResults.CMDNOTRECOGNIZED);
 			return currentState;
 		}
 
 		String cmd = splitInput[0];
 
 		if (cmd.equals("RCPT TO")) {
-			displayResults(Results.WRONGORDER);
+			displayResults(PrintResults.WRONGORDER);
 			return currentState;
 		}
 
 		if (!cmd.equals("MAIL FROM")) {
-			displayResults(Results.CMDNOTRECOGNIZED);
+			displayResults(PrintResults.CMDNOTRECOGNIZED);
 			return currentState;
 		}
 
@@ -202,7 +202,7 @@ public class SMTP1 {
 
 		// check for angle brackets are at the beginning and end
 		if (!(path.length()>0 && path.charAt(0) == '<' && path.charAt(path.length() - 1) == '>')) {
-			displayResults(Results.BADFORM);
+			displayResults(PrintResults.BADFORM);
 			return currentState;
 		}
 
@@ -211,7 +211,7 @@ public class SMTP1 {
 
 		// length should equal two
 		if (!(splitInput.length == 2)) {
-			displayResults(Results.BADFORM);
+			displayResults(PrintResults.BADFORM);
 			return currentState;
 		}
 
@@ -222,7 +222,7 @@ public class SMTP1 {
 		// characters
 		if (!(pathPart.matches("[^<>()\\.,\\\\:@;\\s\\[\\]\"]+") && pathPart
 				.matches("[\\p{ASCII}]*"))) {
-			displayResults(Results.BADFORM);
+			displayResults(PrintResults.BADFORM);
 			return currentState;
 		}
 
@@ -234,17 +234,17 @@ public class SMTP1 {
 
 		// check if there at least something a two character long domain
 		if (!(domain[0].trim().length() >= 2)) {
-			displayResults(Results.BADFORM);
+			displayResults(PrintResults.BADFORM);
 			return currentState;
 		}
 		// method for looping through domain parts
 		if (checkDomain(domain)) {
-			displayResults(Results.OK);
+			displayResults(PrintResults.OK);
 			// add From: path
 			emailInfo.add("From: "+path);
 			return ProtocalState.RCPT_TOSTATE;
 		} else {
-			displayResults(Results.BADFORM);
+			displayResults(PrintResults.BADFORM);
 			return currentState;
 		}
 	}
@@ -295,7 +295,7 @@ public class SMTP1 {
 	}
 
 	// helper method that prints out results based code
-	private static void displayResults(Results code) {
+	private static void displayResults(PrintResults code) {
 		switch(code){
 			case OK:
 				System.out.println("250 ok");
