@@ -8,9 +8,7 @@ public class SMTP1 {
 
 	private static int recipients = 0;
 
-	private enum ProtocalState {MAILFROMSTATE, RCPT_TOSTATE, DATA;
-
-	};
+	private enum ProtocalState {MAILFROMSTATE, RCPT_TOSTATE, DATA};
 
 	public static void main(String[] args) {
 		// variable for line of input
