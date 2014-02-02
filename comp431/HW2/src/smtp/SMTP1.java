@@ -29,7 +29,7 @@ public class SMTP1 {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			myParser.parseInput(nextLine,"MAIL FROM:");
+			myParser.parseInput(nextLine,"DATA");
 		}while(nextLine!=null);
 	}
 }

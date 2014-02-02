@@ -17,7 +17,7 @@ public class SimpleParser {
 			
 			if(command.equals("DATA")){
 				return parseData(input);
-			}else if (command.equals("MAIL FROM:")|| command.equals("RCPT TO:")){
+			}else if (command.equals("MAIL FROM")|| command.equals("RCPT TO")){
 				return parseCommand(input,command);
 			}else{
 				return null;
@@ -97,7 +97,7 @@ public class SimpleParser {
 								//method for looping through domain parts
 								if(checkDomain(domain)){
 									displayResults(0);
-									if(command.equals("MAIL FROM:")){
+									if(command.equals("MAIL FROM")){
 										return new ParsedObject(true,"From: "+path);
 									}else{
 										return new ParsedObject(true,"To: "+path);
