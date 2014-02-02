@@ -11,6 +11,7 @@ public class SMTP1 {
 	private static ArrayList<String>emailInfo; 
 
 	private enum ProtocalState {MAILFROMSTATE, RCPT_TOSTATE, DATA};
+	private enum Results{OK,BEGINDATA,WRONGORDER,CMDNOTRECOGNIZED,BADFORM}
 
 	public static void main(String[] args) {
 		// variable for line of input
@@ -51,7 +52,7 @@ public class SMTP1 {
 		if (currentState == ProtocalState.DATA) {
 
 			if (input.equals(".")) {
-				displayResults(0);
+				displayResults(Results.OK);
 				// write array to file
 				writeToFile(emailInfo);
 				
@@ -80,10 +81,10 @@ public class SMTP1 {
 			ProtocalState currentState) {
 		if (input.equals("DATA")) {
 			if (recipients > 0) {
-				displayResults(4);
+				displayResults(Results.BEGINDATA);
 				return ProtocalState.DATA;
 			} else {
-				displayResults(5);
+				displayResults(Results.WRONGORDER);
 				return currentState;
 			}
 		}
@@ -96,19 +97,19 @@ public class SMTP1 {
 		 * the 'path'
 		 */
 		if (splitInput.length != 2) {
-			displayResults(1);
+			displayResults(Results.CMDNOTRECOGNIZED);
 			return currentState;
 		}
 
 		String cmd = splitInput[0];
 
 		if (cmd.equals("MAIL FROM")) {
-			displayResults(5);
+			displayResults(Results.WRONGORDER);
 			return currentState;
 		}
 
 		if (!cmd.equals("RCPT TO")) {
-			displayResults(1);
+			displayResults(Results.CMDNOTRECOGNIZED);
 			return currentState;
 		}
 
@@ -116,8 +117,8 @@ public class SMTP1 {
 		String path = splitInput[1].trim();
 
 		// check for angle brackets are at the beginning and end
-		if (!(path.charAt(0) == '<' && path.charAt(path.length() - 1) == '>')) {
-			displayResults(2);
+		if (!(path.length()>0 && path.charAt(0) == '<' && path.charAt(path.length() - 1) == '>')) {
+			displayResults(Results.BADFORM);
 			return currentState;
 		}
 
@@ -126,7 +127,7 @@ public class SMTP1 {
 
 		// length should equal two
 		if (!(splitInput.length == 2)) {
-			displayResults(2);
+			displayResults(Results.BADFORM);
 			return currentState;
 		}
 
@@ -137,7 +138,7 @@ public class SMTP1 {
 		// characters
 		if (!(pathPart.matches("[^<>()\\.,\\\\:@;\\s\\[\\]\"]+") && pathPart
 				.matches("[\\p{ASCII}]*"))) {
-			displayResults(2);
+			displayResults(Results.BADFORM);
 			return currentState;
 		}
 
@@ -149,26 +150,26 @@ public class SMTP1 {
 
 		// check if there at least something a two character long domain
 		if (!(domain[0].trim().length() >= 2)) {
-			displayResults(2);
+			displayResults(Results.BADFORM);
 			return currentState;
 		}
 		// method for looping through domain parts
 		if (checkDomain(domain)) {
-			displayResults(0);
+			displayResults(Results.OK);
 			emailInfo.add("To: "+path);
 			// add RCPT TO:
 			recipients++;
 			return currentState;
 		} else {
-			displayResults(2);
+			displayResults(Results.BADFORM);
 			return currentState;
 		}
 	}
 
 	private static ProtocalState checkMailFrom(String input,
 			ProtocalState currentState) {
-		if (input == "DATA") {
-			displayResults(5);
+		if (input.equals("DATA")) {
+			displayResults(Results.WRONGORDER);
 			return currentState;
 		}
 
@@ -180,19 +181,19 @@ public class SMTP1 {
 		 * the 'path'
 		 */
 		if (splitInput.length != 2) {
-			displayResults(1);
+			displayResults(Results.CMDNOTRECOGNIZED);
 			return currentState;
 		}
 
 		String cmd = splitInput[0];
 
 		if (cmd.equals("RCPT TO")) {
-			displayResults(5);
+			displayResults(Results.WRONGORDER);
 			return currentState;
 		}
 
 		if (!cmd.equals("MAIL FROM")) {
-			displayResults(1);
+			displayResults(Results.CMDNOTRECOGNIZED);
 			return currentState;
 		}
 
@@ -200,8 +201,8 @@ public class SMTP1 {
 		String path = splitInput[1].trim();
 
 		// check for angle brackets are at the beginning and end
-		if (!(path.charAt(0) == '<' && path.charAt(path.length() - 1) == '>')) {
-			displayResults(2);
+		if (!(path.length()>0 && path.charAt(0) == '<' && path.charAt(path.length() - 1) == '>')) {
+			displayResults(Results.BADFORM);
 			return currentState;
 		}
 
@@ -210,7 +211,7 @@ public class SMTP1 {
 
 		// length should equal two
 		if (!(splitInput.length == 2)) {
-			displayResults(2);
+			displayResults(Results.BADFORM);
 			return currentState;
 		}
 
@@ -221,7 +222,7 @@ public class SMTP1 {
 		// characters
 		if (!(pathPart.matches("[^<>()\\.,\\\\:@;\\s\\[\\]\"]+") && pathPart
 				.matches("[\\p{ASCII}]*"))) {
-			displayResults(2);
+			displayResults(Results.BADFORM);
 			return currentState;
 		}
 
@@ -233,17 +234,17 @@ public class SMTP1 {
 
 		// check if there at least something a two character long domain
 		if (!(domain[0].trim().length() >= 2)) {
-			displayResults(2);
+			displayResults(Results.BADFORM);
 			return currentState;
 		}
 		// method for looping through domain parts
 		if (checkDomain(domain)) {
-			displayResults(0);
+			displayResults(Results.OK);
 			// add From: path
 			emailInfo.add("From: "+path);
 			return ProtocalState.RCPT_TOSTATE;
 		} else {
-			displayResults(2);
+			displayResults(Results.BADFORM);
 			return currentState;
 		}
 	}
@@ -286,7 +287,6 @@ public class SMTP1 {
 					break;
 				}
 			}
-
 			// array was null or empty
 		} else {
 			pass = false;
@@ -295,19 +295,23 @@ public class SMTP1 {
 	}
 
 	// helper method that prints out results based code
-	private static void displayResults(int tokenCode) {
-		if (tokenCode == 0) {
-			System.out.println("250 ok");
-		} else if (tokenCode == 1) {
-			System.out.println("500 Syntax error: command unrecognized");
-		} else if (tokenCode == 2) {
-			System.out.println("501 Syntax error in parameters or arguments");
-		} else if (tokenCode == 4) {
-			System.out.println("354 Start mail input; end with <CRLF>.<CRLF>");
-		} else if (tokenCode == 5) {
-			System.out.println("503 Bad sequence of commands");
-		} else {
-			return;
+	private static void displayResults(Results code) {
+		switch(code){
+			case OK:
+				System.out.println("250 ok");
+				break;
+			case BEGINDATA:
+				System.out.println("354 Start mail input; end with <CRLF>.<CRLF>");
+				break;
+			case CMDNOTRECOGNIZED:
+				System.out.println("500 Syntax error: command unrecognized");
+				break;
+			case BADFORM:
+				System.out.println("501 Syntax error in parameters or arguments");
+				break;
+			case WRONGORDER:
+				System.out.println("503 Bad sequence of commands");
+				break;
 		}
 	}
 }
