@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import parsing.ParsedObject;
 import parsing.SimpleParser;
 
 public class SMTP1 {
@@ -15,6 +16,7 @@ public class SMTP1 {
 		
 		//create parser object
 		SimpleParser myParser=new SimpleParser();
+		
 		//buffer for reading input
 		BufferedReader myBuffer=new BufferedReader(new InputStreamReader(System.in));
 		
@@ -29,7 +31,16 @@ public class SMTP1 {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			myParser.parseInput(nextLine,"DATA");
+			ParsedObject inputObj=myParser.parseInput(nextLine,"DATA");
+			if(inputObj.getSuccessfulParse()){
+				
+			}else{
+				
+			}
 		}while(nextLine!=null);
+	}
+	
+	private void checkProtocalState(){
+		
 	}
 }

@@ -38,9 +38,11 @@ public class SimpleParser {
 		}else{
 			if(data.equals(".")){
 				dataCommandUnseen=true;
+				System.out.println(".");
 				displayResults(0);
 				return new ParsedObject(true,".");
 			}else{
+				System.out.println(data);
 				return new ParsedObject(true,data);
 			}
 		}
