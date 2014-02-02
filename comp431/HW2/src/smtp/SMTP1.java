@@ -1,8 +1,11 @@
 package smtp;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 
 public class SMTP1 {
@@ -11,12 +14,11 @@ public class SMTP1 {
 	private static ArrayList<String>emailInfo; 
 
 	private enum ProtocolState {MAILFROMSTATE, RCPT_TOSTATE, DATA};
-	private enum PrintResults{OK,BEGINDATA,WRONGORDER,CMDNOTRECOGNIZED,BADFORM}
+	private enum PrintResults {OK,BEGINDATA,WRONGORDER,CMDNOTRECOGNIZED,BADFORM}
 
 	public static void main(String[] args) {
 		// variable for line of input
 		String nextLine = "";
-
 
 		// create protocol enum for state changes
 		// begins in MAILFROM state
@@ -24,6 +26,7 @@ public class SMTP1 {
 		
 		//create 
 		emailInfo=new ArrayList<String>();
+
 		// buffer for reading input
 		BufferedReader myBuffer = new BufferedReader(new InputStreamReader(
 				System.in));
@@ -46,6 +49,12 @@ public class SMTP1 {
 
 	private static ProtocolState parseInput(String input,
 			ProtocolState currentState) {
+		
+		//if first line of file is null
+		if(input==null){
+			return currentState;
+		}
+		
 		// print input first
 		System.out.println(input);
 
@@ -57,8 +66,7 @@ public class SMTP1 {
 				writeToFile(emailInfo);
 				
 				//reset mail objects for new message
-				emailInfo.clear();
-				recipients=0;
+				resetEmail();
 				
 				// change state back to MAILFROMSTATE
 				return ProtocolState.MAILFROMSTATE;
@@ -75,6 +83,11 @@ public class SMTP1 {
 		} else {
 			return currentState;
 		}
+	}
+	
+	private static void resetEmail(){
+		emailInfo.clear();
+		recipients=0;
 	}
 
 	private static ProtocolState checkRcptTo(String input,
@@ -253,14 +266,29 @@ public class SMTP1 {
 		if(emailInfo.size()<1){
 			return;
 		}
-		for(int i=0;i<emailInfo.size();i++){
-			System.out.println(emailInfo.get(i));
+		/*index for where data starts
+		* 0 has mail from:
+		*1-recipients are recipients
+		*Data begins at index recipients + 1 and goes till end of arraylist
+		*/
+		int dataIndex=recipients + 1;
+//		try(PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("myfile.txt", true)))) {
+//		    out.println("the text");
+//		}catch (IOException e) {
+//		    //exception handling left as an exercise for the reader
+//		}
+		for(int i=1;i<emailInfo.size();i++){
+			String dir=emailInfo.get(i);
+			//a little cryptic but basically just stripping the angle brackets
+			//for file path name
+			dir=dir.substring(5, dir.length()-1);
+			System.out.println(dir);
 		}
 		
 	}
 
 	/*
-	 * method that take in a string array and checks if thedomain token is
+	 * method that take in a string array and checks if the domain token is
 	 * properly formated
 	 */
 	private static boolean checkDomain(String[] domainArray) {
