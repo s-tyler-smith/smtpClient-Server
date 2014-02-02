@@ -10,7 +10,7 @@ public class SMTP1 {
 	private static int recipients = 0;
 	private static ArrayList<String>emailInfo; 
 
-	private enum ProtocalState {MAILFROMSTATE, RCPT_TOSTATE, DATA};
+	private enum ProtocolState {MAILFROMSTATE, RCPT_TOSTATE, DATA};
 	private enum PrintResults{OK,BEGINDATA,WRONGORDER,CMDNOTRECOGNIZED,BADFORM}
 
 	public static void main(String[] args) {
@@ -18,9 +18,9 @@ public class SMTP1 {
 		String nextLine = "";
 
 
-		// create protocal enum for state changes
+		// create protocol enum for state changes
 		// begins in MAILFROM state
-		ProtocalState state = ProtocalState.MAILFROMSTATE;
+		ProtocolState state = ProtocolState.MAILFROMSTATE;
 		
 		//create 
 		emailInfo=new ArrayList<String>();
@@ -44,12 +44,12 @@ public class SMTP1 {
 		} while (nextLine != null);
 	}
 
-	private static ProtocalState parseInput(String input,
-			ProtocalState currentState) {
+	private static ProtocolState parseInput(String input,
+			ProtocolState currentState) {
 		// print input first
 		System.out.println(input);
 
-		if (currentState == ProtocalState.DATA) {
+		if (currentState == ProtocolState.DATA) {
 
 			if (input.equals(".")) {
 				displayResults(PrintResults.OK);
@@ -61,28 +61,28 @@ public class SMTP1 {
 				recipients=0;
 				
 				// change state back to MAILFROMSTATE
-				return ProtocalState.MAILFROMSTATE;
+				return ProtocolState.MAILFROMSTATE;
 			} else {
 				// add to array
 				emailInfo.add(input);
 				return currentState;
 			}
 
-		} else if (currentState == ProtocalState.MAILFROMSTATE) {
+		} else if (currentState == ProtocolState.MAILFROMSTATE) {
 			return checkMailFrom(input.trim(), currentState);
-		} else if (currentState == ProtocalState.RCPT_TOSTATE) {
+		} else if (currentState == ProtocolState.RCPT_TOSTATE) {
 			return checkRcptTo(input.trim(), currentState);
 		} else {
 			return currentState;
 		}
 	}
 
-	private static ProtocalState checkRcptTo(String input,
-			ProtocalState currentState) {
+	private static ProtocolState checkRcptTo(String input,
+			ProtocolState currentState) {
 		if (input.equals("DATA")) {
 			if (recipients > 0) {
 				displayResults(PrintResults.BEGINDATA);
-				return ProtocalState.DATA;
+				return ProtocolState.DATA;
 			} else {
 				displayResults(PrintResults.WRONGORDER);
 				return currentState;
@@ -166,8 +166,8 @@ public class SMTP1 {
 		}
 	}
 
-	private static ProtocalState checkMailFrom(String input,
-			ProtocalState currentState) {
+	private static ProtocolState checkMailFrom(String input,
+			ProtocolState currentState) {
 		if (input.equals("DATA")) {
 			displayResults(PrintResults.WRONGORDER);
 			return currentState;
@@ -242,7 +242,7 @@ public class SMTP1 {
 			displayResults(PrintResults.OK);
 			// add From: path
 			emailInfo.add("From: "+path);
-			return ProtocalState.RCPT_TOSTATE;
+			return ProtocolState.RCPT_TOSTATE;
 		} else {
 			displayResults(PrintResults.BADFORM);
 			return currentState;

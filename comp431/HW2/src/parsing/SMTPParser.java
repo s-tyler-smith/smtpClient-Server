@@ -8,14 +8,14 @@ public class SMTPParser {
 	
 	private int recipients=0;
 
-	private enum ProtocalState {
+	private enum ProtocolState {
 		MAILFROMSTATE(0),
 		RCPT_TOSTATE(1),
 		DATA(2);
 		
 		private int order;
 		
-		private ProtocalState(int initOrder){
+		private ProtocolState(int initOrder){
 			this.order=initOrder;
 		}
 		public int getOrder(){
@@ -30,9 +30,9 @@ public class SMTPParser {
 		//create parser object
 		SMTPParser myParser=new SMTPParser();
 		
-		//create protocal enum for state changes
+		//create protocol enum for state changes
 		//begins in MAILFROM state
-		ProtocalState state=ProtocalState.MAILFROMSTATE;
+		ProtocolState state=ProtocolState.MAILFROMSTATE;
 		
 		//buffer for reading input
 		BufferedReader myBuffer=new BufferedReader(new InputStreamReader(System.in));
@@ -52,37 +52,37 @@ public class SMTPParser {
 		    System.out.println(state.toString());
 		}while(nextLine!=null);
 	}
-	private ProtocalState parseInput(String input,ProtocalState currentState){
+	private ProtocolState parseInput(String input,ProtocolState currentState){
 		//print input first
 		System.out.println(input);
 		
-		if(currentState==ProtocalState.DATA){
+		if(currentState==ProtocolState.DATA){
 			
 			if(input.equals(".")){
 				displayResults(0);
 				//write array to file
 				
 				//change state back to MAILFROMSTATE
-				return ProtocalState.MAILFROMSTATE;
+				return ProtocolState.MAILFROMSTATE;
 			}else{
 				//add to array
 				return currentState;
 			}
 			
-		}else if(currentState==ProtocalState.MAILFROMSTATE){
+		}else if(currentState==ProtocolState.MAILFROMSTATE){
 			return checkMailFrom(input.trim(),currentState);
-		}else if (currentState==ProtocalState.RCPT_TOSTATE){
+		}else if (currentState==ProtocolState.RCPT_TOSTATE){
 			return checkRcptTo(input.trim(),currentState);
 		}else{
 			return currentState;
 		}
 	}
 	
-	private ProtocalState checkRcptTo(String input,ProtocalState currentState){
+	private ProtocolState checkRcptTo(String input,ProtocolState currentState){
 		if(input.equals("DATA")){
 			if(recipients>0){
 				displayResults(4);
-				return ProtocalState.DATA;
+				return ProtocolState.DATA;
 			}else{
 				displayResults(5);
 				return currentState;
@@ -164,7 +164,7 @@ public class SMTPParser {
 		}						
 	}
 	
-	private ProtocalState checkMailFrom(String input,ProtocalState currentState){
+	private ProtocolState checkMailFrom(String input,ProtocolState currentState){
 		if(input=="DATA"){
 			displayResults(5);
 			return currentState;
@@ -236,7 +236,7 @@ public class SMTPParser {
 		if(checkDomain(domain)){
 			displayResults(0);
 			//add From: path
-			return ProtocalState.RCPT_TOSTATE;
+			return ProtocolState.RCPT_TOSTATE;
 		}else{
 			displayResults(2);
 			return currentState;
