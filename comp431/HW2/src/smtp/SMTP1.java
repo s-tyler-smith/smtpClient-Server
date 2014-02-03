@@ -287,23 +287,20 @@ public class SMTP1 {
 		 */
 		for (int i = 1; i <= recipients; i++) {
 
-			String directoryName = emailInfo.get(i);
+			String fileName = emailInfo.get(i);
 
 			// a little cryptic but basically just stripping the angle brackets
 			// to form the file path name
-			directoryName = directoryName.substring(directoryName.indexOf('<')+1,
-					directoryName.length() - 1);
-
-			for (int j = 0; j < emailInfo.size(); j++) {
-
-				try (PrintWriter myPrinter = new PrintWriter(new BufferedWriter(
-						new FileWriter("forward/" + directoryName,
-								true)))) {
+			fileName = fileName.substring(fileName.indexOf('<') + 1,
+					fileName.length() - 1);
+			try (PrintWriter myPrinter = new PrintWriter(new BufferedWriter(
+					new FileWriter("forward/" + fileName, true)))) {
+				for (int j = 0; j < emailInfo.size(); j++) {
 					myPrinter.println(emailInfo.get(j));
-					myPrinter.close();
-				} catch (IOException e) {
-					e.getStackTrace();
 				}
+				myPrinter.close();
+			} catch (IOException e) {
+				e.getStackTrace();
 			}
 		}
 	}
