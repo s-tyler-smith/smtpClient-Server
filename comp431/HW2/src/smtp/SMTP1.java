@@ -314,7 +314,7 @@ public class SMTP1 {
 		//not a valid command
 		if (!cmd.equals("RCPT TO")) {
 			
-			//eror
+			//error
 			displayResults(PrintResults.CMDNOTRECOGNIZED);
 			
 			return currentState;
@@ -480,6 +480,7 @@ public class SMTP1 {
 					break;
 				}
 			}
+			
 			// array was null or empty
 		} else {
 			pass = false;
