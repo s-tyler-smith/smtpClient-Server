@@ -11,10 +11,15 @@ import java.util.ArrayList;
 public class SMTP1 {
 
 	private static int recipients = 0;
-	private static ArrayList<String>emailInfo; 
+	private static ArrayList<String> emailInfo;
 
-	private enum ProtocolState {MAILFROMSTATE, RCPT_TOSTATE, DATA};
-	private enum PrintResults {OK,BEGINDATA,WRONGORDER,CMDNOTRECOGNIZED,BADFORM}
+	private enum ProtocolState {
+		MAILFROMSTATE, RCPT_TOSTATE, DATA
+	};
+
+	private enum PrintResults {
+		OK, BEGINDATA, WRONGORDER, CMDNOTRECOGNIZED, BADFORM
+	}
 
 	public static void main(String[] args) {
 		// variable for line of input
@@ -23,9 +28,9 @@ public class SMTP1 {
 		// create protocol enum for state changes
 		// begins in MAILFROM state
 		ProtocolState state = ProtocolState.MAILFROMSTATE;
-		
-		//create 
-		emailInfo=new ArrayList<String>();
+
+		// create
+		emailInfo = new ArrayList<String>();
 
 		// buffer for reading input
 		BufferedReader myBuffer = new BufferedReader(new InputStreamReader(
@@ -43,18 +48,18 @@ public class SMTP1 {
 				e.printStackTrace();
 			}
 			state = parseInput(nextLine, state);
-			//System.out.println(state.toString());
+			// System.out.println(state.toString());
 		} while (nextLine != null);
 	}
 
 	private static ProtocolState parseInput(String input,
 			ProtocolState currentState) {
-		
-		//if first line of file is null
-		if(input==null){
+
+		// if first line of file is null
+		if (input == null) {
 			return currentState;
 		}
-		
+
 		// print input first
 		System.out.println(input);
 
@@ -64,10 +69,10 @@ public class SMTP1 {
 				displayResults(PrintResults.OK);
 				// write array to file
 				writeToFile(emailInfo);
-				
-				//reset mail objects for new message
+
+				// reset mail objects for new message
 				resetEmail();
-				
+
 				// change state back to MAILFROMSTATE
 				return ProtocolState.MAILFROMSTATE;
 			} else {
@@ -77,17 +82,24 @@ public class SMTP1 {
 			}
 
 		} else if (currentState == ProtocolState.MAILFROMSTATE) {
+
 			return checkMailFrom(input.trim(), currentState);
+
 		} else if (currentState == ProtocolState.RCPT_TOSTATE) {
+
 			return checkRcptTo(input.trim(), currentState);
+
 		} else {
+
 			return currentState;
 		}
 	}
-	
-	private static void resetEmail(){
+
+	private static void resetEmail() {
+		// empty arraylist with email information
 		emailInfo.clear();
-		recipients=0;
+		// set recipients back zero
+		recipients = 0;
 	}
 
 	private static ProtocolState checkRcptTo(String input,
@@ -130,7 +142,8 @@ public class SMTP1 {
 		String path = splitInput[1].trim();
 
 		// check for angle brackets are at the beginning and end
-		if (!(path.length()>0 && path.charAt(0) == '<' && path.charAt(path.length() - 1) == '>')) {
+		if (!(path.length() > 0 && path.charAt(0) == '<' && path.charAt(path
+				.length() - 1) == '>')) {
 			displayResults(PrintResults.BADFORM);
 			return currentState;
 		}
@@ -169,7 +182,7 @@ public class SMTP1 {
 		// method for looping through domain parts
 		if (checkDomain(domain)) {
 			displayResults(PrintResults.OK);
-			emailInfo.add("To: "+path);
+			emailInfo.add("To: " + path);
 			// add RCPT TO:
 			recipients++;
 			return currentState;
@@ -214,7 +227,8 @@ public class SMTP1 {
 		String path = splitInput[1].trim();
 
 		// check for angle brackets are at the beginning and end
-		if (!(path.length()>0 && path.charAt(0) == '<' && path.charAt(path.length() - 1) == '>')) {
+		if (!(path.length() > 0 && path.charAt(0) == '<' && path.charAt(path
+				.length() - 1) == '>')) {
 			displayResults(PrintResults.BADFORM);
 			return currentState;
 		}
@@ -254,37 +268,44 @@ public class SMTP1 {
 		if (checkDomain(domain)) {
 			displayResults(PrintResults.OK);
 			// add From: path
-			emailInfo.add("From: "+path);
+			emailInfo.add("From: " + path);
 			return ProtocolState.RCPT_TOSTATE;
 		} else {
 			displayResults(PrintResults.BADFORM);
 			return currentState;
 		}
 	}
-	
-	private static void writeToFile(ArrayList<String> emailInfo){
-		if(emailInfo.size()<1){
+
+	private static void writeToFile(ArrayList<String> emailInfo) {
+		if (emailInfo.size() < 1) {
 			return;
 		}
-		/*index for where data starts
-		* 0 has mail from:
-		*1-recipients are recipients
-		*Data begins at index recipients + 1 and goes till end of arraylist
-		*/
-		int dataIndex=recipients + 1;
-//		try(PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("myfile.txt", true)))) {
-//		    out.println("the text");
-//		}catch (IOException e) {
-//		    //exception handling left as an exercise for the reader
-//		}
-		for(int i=1;i<emailInfo.size();i++){
-			String dir=emailInfo.get(i);
-			//a little cryptic but basically just stripping the angle brackets
-			//for file path name
-			dir=dir.substring(5, dir.length()-1);
-			System.out.println(dir);
+		/*
+		 * index for where data starts 0 has mail from: 1-recipients are
+		 * recipients Data begins at index recipients + 1 and goes till end of
+		 * arraylist
+		 */
+		for (int i = 1; i <= recipients; i++) {
+
+			String directoryName = emailInfo.get(i);
+
+			// a little cryptic but basically just stripping the angle brackets
+			// to form the file path name
+			directoryName = directoryName.substring(directoryName.indexOf('<')+1,
+					directoryName.length() - 1);
+
+			for (int j = 0; j < emailInfo.size(); j++) {
+
+				try (PrintWriter myPrinter = new PrintWriter(new BufferedWriter(
+						new FileWriter("forward/" + directoryName,
+								true)))) {
+					myPrinter.println(emailInfo.get(j));
+					myPrinter.close();
+				} catch (IOException e) {
+					e.getStackTrace();
+				}
+			}
 		}
-		
 	}
 
 	/*
@@ -324,22 +345,22 @@ public class SMTP1 {
 
 	// helper method that prints out results based code
 	private static void displayResults(PrintResults code) {
-		switch(code){
-			case OK:
-				System.out.println("250 ok");
-				break;
-			case BEGINDATA:
-				System.out.println("354 Start mail input; end with <CRLF>.<CRLF>");
-				break;
-			case CMDNOTRECOGNIZED:
-				System.out.println("500 Syntax error: command unrecognized");
-				break;
-			case BADFORM:
-				System.out.println("501 Syntax error in parameters or arguments");
-				break;
-			case WRONGORDER:
-				System.out.println("503 Bad sequence of commands");
-				break;
+		switch (code) {
+		case OK:
+			System.out.println("250 ok");
+			break;
+		case BEGINDATA:
+			System.out.println("354 Start mail input; end with <CRLF>.<CRLF>");
+			break;
+		case CMDNOTRECOGNIZED:
+			System.out.println("500 Syntax error: command unrecognized");
+			break;
+		case BADFORM:
+			System.out.println("501 Syntax error in parameters or arguments");
+			break;
+		case WRONGORDER:
+			System.out.println("503 Bad sequence of commands");
+			break;
 		}
 	}
 }
