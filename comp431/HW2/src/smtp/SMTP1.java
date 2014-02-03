@@ -57,8 +57,11 @@ public class SMTP1 {
 		 */
 		do {
 			try {
+				
 				nextLine = myBuffer.readLine();
+				
 			} catch (IOException e) {
+				
 				e.printStackTrace();
 			}
 			
@@ -256,7 +259,6 @@ public class SMTP1 {
 	private static ProtocolState checkRcptTo(String input,
 			ProtocolState currentState) {
 		
-		
 		//initial check if input equals DATA
 		if (input.equals("DATA")) {
 			
@@ -286,10 +288,7 @@ public class SMTP1 {
 		//so split on first colon
 		String[] splitInput = input.split(":", 2);
 
-		
-		/* when split on ':' there should only be two parts the 'MAIL FROM' || 'RCPT TO' and
-		 * the 'path'
-		 */
+		// when split on ':' there should only be two parts the 'MAIL FROM' || 'RCPT TO' and the 'path'
 		if (splitInput.length != 2) {
 			
 			//print 500 error
@@ -297,7 +296,6 @@ public class SMTP1 {
 			
 			return currentState;
 		}
-		
 		
 		//input still good so see which type of command was sent
 		String cmd = splitInput[0];
@@ -329,8 +327,7 @@ public class SMTP1 {
 		if (!(path.length() > 0 && path.charAt(0) == '<' && path.charAt(path
 				.length() - 1) == '>')) {
 			
-			//bad form
-			
+			//bad form	
 			displayResults(PrintResults.BADFORM);
 			
 			return currentState;
@@ -464,13 +461,13 @@ public class SMTP1 {
 
 			// boolean for correct format
 			pass = true;
-
-			/*
-			 * check if each part is made up of at least 2 characters. Must
+			
+			/* check if each part is made up of at least 2 characters. Must
 			 * begin with a letter but can contain as many letters or digits
 			 * after it
 			 */
 			for (int i = 0; i < domainArray.length; i++) {
+				
 				if (!domainArray[i].matches(DOMAINREGEX)) {
 
 					// wrong order or wrong type of characters so it fails
@@ -483,8 +480,10 @@ public class SMTP1 {
 			
 			// array was null or empty
 		} else {
+			
 			pass = false;
 		}
+		
 		return pass;
 	}
 	
@@ -502,21 +501,37 @@ public class SMTP1 {
 
 	// helper method that prints out results based code
 	private static void displayResults(PrintResults code) {
+		
 		switch (code) {
+		
 		case OK:
+			
 			System.out.println("250 OK");
+			
 			break;
+		
 		case BEGINDATA:
+			
 			System.out.println("354 Start mail input; end with <CRLF>.<CRLF>");
+			
 			break;
+		
 		case CMDNOTRECOGNIZED:
+			
 			System.out.println("500 Syntax error: command unrecognized");
+			
 			break;
+		
 		case BADFORM:
+		
 			System.out.println("501 Syntax error in parameters or arguments");
+			
 			break;
+		
 		case WRONGORDER:
+			
 			System.out.println("503 Bad sequence of commands");
+			
 			break;
 		}
 	}
