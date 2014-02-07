@@ -31,7 +31,7 @@ public class SMTP2 {
 		// BufferedReader fileBuffer=new BufferedReader(new
 		// FileReader(args[0]));
 		BufferedReader fileBuffer = new BufferedReader(new FileReader(
-				"forward/<JEROME@CS"));
+				"forward/TONYbO@CS.txt"));
 
 		// buffer for reading input
 		BufferedReader responseBuffer = new BufferedReader(
@@ -42,14 +42,15 @@ public class SMTP2 {
 
 		do {
 			
-			
 			if((currentState==ProtocolState.REQ_DATA)){
 				
 				processFileInput(DATA);
 						
 			}else if(currentState==ProtocolState.END_DATA){
 				
-				processFileInput(printQueue.poll());
+				if(printQueue.size()>0){
+					processFileInput(printQueue.poll());
+				}
 				
 			}else{
 				nextFileLine = fileBuffer.readLine();
@@ -81,7 +82,7 @@ public class SMTP2 {
 	}
 
 	private static void processFileInput(String line) {
-		if(line==null)return;
+		//if(line==null)return;
 		//System.out.println(line);
 		if(currentState==ProtocolState.MAILFROMSTATE && line.startsWith("From: ")){
 			
@@ -95,12 +96,15 @@ public class SMTP2 {
 			
 			System.err.println(line);
 			
-		}else if(currentState==ProtocolState.SEND_DATA && (line.startsWith("From: ")||(line==null))){
+		}else if(currentState==ProtocolState.SEND_DATA && line==null){
+			System.err.println(".");
+			currentState=ProtocolState.END_DATA;
+		
+		}else if(currentState==ProtocolState.SEND_DATA && line.startsWith("From: ")){
 			
 			currentState=ProtocolState.END_DATA;
 			
 			System.err.println(".");
-			
 			printQueue.add(MAIL_FROM+line.substring(line.indexOf(' ')));
 		
 		}else if(currentState==ProtocolState.SEND_DATA){
@@ -133,5 +137,4 @@ public class SMTP2 {
 		}
 		
 	}
-
 }
