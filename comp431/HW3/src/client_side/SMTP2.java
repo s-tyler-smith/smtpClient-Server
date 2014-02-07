@@ -61,7 +61,7 @@ public class SMTP2 {
 		if (!(currentState == ProtocolState.SEND_DATA)) {
 			
 			nextResponseLine = responseBuffer.readLine();
-
+			
 			processServerResponse(nextResponseLine);
 		}
 			
