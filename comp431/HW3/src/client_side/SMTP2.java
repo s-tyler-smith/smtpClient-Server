@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 
 public class SMTP2 {
 
@@ -17,8 +16,7 @@ public class SMTP2 {
 
 		BufferedReader myBuffer;
 		String nextLine = null;
-		myBuffer=new BufferedReader(new InputStreamReader(
-				System.in));
+		myBuffer=new BufferedReader(new FileReader(args[0]));
 			do {
 				try {
 					nextLine = myBuffer.readLine();
