@@ -20,7 +20,7 @@ public class SMTP2 {
 
 	// enum for maintaining state
 	private enum ProtocolState {
-		MAILFROMSTATE, RCPT_TOSTATE,REQ_DATA,SEND_DATA
+		MAILFROMSTATE, RCPT_TOSTATE,REQ_DATA,SEND_DATA,END_DATA
 	};
 
 	public static void main(String[] args) throws IOException {
@@ -31,7 +31,7 @@ public class SMTP2 {
 		// BufferedReader fileBuffer=new BufferedReader(new
 		// FileReader(args[0]));
 		BufferedReader fileBuffer = new BufferedReader(new FileReader(
-				"forward/TONYbO@CS.txt"));
+				"forward/<JEROME@CS"));
 
 		// buffer for reading input
 		BufferedReader responseBuffer = new BufferedReader(
@@ -42,11 +42,21 @@ public class SMTP2 {
 
 		do {
 			
-			nextFileLine = fileBuffer.readLine();
-		
-			processFileInput(nextFileLine);
 			
-			printNextCommand();
+			if((currentState==ProtocolState.REQ_DATA)){
+				
+				processFileInput(DATA);
+						
+			}else if(currentState==ProtocolState.END_DATA){
+				
+				processFileInput(printQueue.poll());
+				
+			}else{
+				nextFileLine = fileBuffer.readLine();
+				processFileInput(nextFileLine);
+			}
+		
+			//printNextCommand();
 			
 		if (!(currentState == ProtocolState.SEND_DATA)) {
 			
@@ -55,7 +65,7 @@ public class SMTP2 {
 			processServerResponse(nextResponseLine);
 		}
 			
-		} while (nextFileLine != null || nextResponseLine != null);
+		} while (nextFileLine != null && nextResponseLine != null);
 
 		fileBuffer.close();
 		responseBuffer.close();
@@ -75,38 +85,32 @@ public class SMTP2 {
 		//System.out.println(line);
 		if(currentState==ProtocolState.MAILFROMSTATE && line.startsWith("From: ")){
 			
-			printQueue.add(MAIL_FROM+line.substring(line.indexOf(' ')));
-			
-			currentState=ProtocolState.RCPT_TOSTATE;
-			
+			System.err.println(MAIL_FROM+line.substring(line.indexOf(' ')));
+				
 		}else if(currentState==ProtocolState.RCPT_TOSTATE && line.startsWith("To: ")){
 			
-			printQueue.add(RCPT_TO+line.substring(line.indexOf(' ')));
-			
-		}else if(currentState==ProtocolState.RCPT_TOSTATE){
-			
-			currentState=ProtocolState.REQ_DATA;
-			
-			System.err.println(DATA);
-			
-			printQueue.add(line);
+			System.err.println(RCPT_TO+line.substring(line.indexOf(' ')));
 			
 		}else if(currentState==ProtocolState.REQ_DATA){
 			
-			printQueue.add(line);
-			currentState=ProtocolState.SEND_DATA;
+			System.err.println(line);
 			
-		}else if(currentState==ProtocolState.SEND_DATA && line.startsWith("From: ")){
+		}else if(currentState==ProtocolState.SEND_DATA && (line.startsWith("From: ")||(line==null))){
 			
-			currentState=ProtocolState.MAILFROMSTATE;
+			currentState=ProtocolState.END_DATA;
 			
-			printQueue.add(".");
+			System.err.println(".");
 			
 			printQueue.add(MAIL_FROM+line.substring(line.indexOf(' ')));
-			
+		
 		}else if(currentState==ProtocolState.SEND_DATA){
 			
-			printQueue.add(line);
+			System.err.println(line);
+				
+		}else if(currentState==ProtocolState.END_DATA){
+			
+			System.err.println(line);
+			currentState=ProtocolState.MAILFROMSTATE;
 		}
 
 	}
@@ -115,7 +119,19 @@ public class SMTP2 {
 		if(response==null){
 			return;
 		}
-		printQueue.add(response);
+		if(currentState==ProtocolState.MAILFROMSTATE){
+			System.err.println(response);
+			currentState=ProtocolState.RCPT_TOSTATE;
+		}else if(currentState==ProtocolState.RCPT_TOSTATE){
+			System.err.println(response);
+			currentState=ProtocolState.REQ_DATA;
+		}else if(currentState==ProtocolState.REQ_DATA){
+			System.err.println(response);
+			currentState=ProtocolState.SEND_DATA;
+		}else if(currentState==ProtocolState.END_DATA){
+			System.err.println(response);
+		}
+		
 	}
 
 }
