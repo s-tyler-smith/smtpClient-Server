@@ -5,14 +5,22 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.LinkedList;
+import java.util.Queue;
 
 public class SMTP2 {
 
 	private static ProtocolState currentState;
+	private static final String MAIL_FROM="MAIL FROM:";
+	private static final String RCPT_TO="RCPT TO:";
+	private static final String DATA="DATA";
+	
+	private static Queue<String> printQueue=new LinkedList<String>();
+	
 
 	// enum for maintaining state
 	private enum ProtocolState {
-		MAILFROMSTATE, RCPT_TOSTATE, DATA
+		MAILFROMSTATE, RCPT_TOSTATE,REQ_DATA,SEND_DATA
 	};
 
 	public static void main(String[] args) throws IOException {
@@ -33,35 +41,81 @@ public class SMTP2 {
 		String nextResponseLine = null;
 
 		do {
+			
+			nextFileLine = fileBuffer.readLine();
+		
+			processFileInput(nextFileLine);
+			
+			printNextCommand();
+			
+		if (!(currentState == ProtocolState.SEND_DATA)) {
+			
+			nextResponseLine = responseBuffer.readLine();
 
-			try {
+			processServerResponse(nextResponseLine);
+		}
+			
+		} while (nextFileLine != null || nextResponseLine != null);
 
-				nextFileLine = fileBuffer.readLine();
-
-				processFileInput(nextFileLine);
-
-				if (!(currentState == ProtocolState.DATA)) {
-					nextResponseLine = responseBuffer.readLine();
-
-					processServerResponse(nextResponseLine);
-				}
-			} catch (IOException e) {
-
-				e.printStackTrace();
-			}
-
-		} while (nextFileLine != null && nextResponseLine != null);
 		fileBuffer.close();
+		responseBuffer.close();
 
+	}
+	private static void printNextCommand(){
+		if(printQueue.size()!=0){
+			System.err.println(printQueue.poll());
+			if(printQueue.size()!=0){
+				System.err.println(printQueue.poll());
+			}
+		}
 	}
 
 	private static void processFileInput(String line) {
-		System.out.println(line);
+		if(line==null)return;
+		//System.out.println(line);
+		if(currentState==ProtocolState.MAILFROMSTATE && line.startsWith("From: ")){
+			
+			printQueue.add(MAIL_FROM+line.substring(line.indexOf(' ')));
+			
+			currentState=ProtocolState.RCPT_TOSTATE;
+			
+		}else if(currentState==ProtocolState.RCPT_TOSTATE && line.startsWith("To: ")){
+			
+			printQueue.add(RCPT_TO+line.substring(line.indexOf(' ')));
+			
+		}else if(currentState==ProtocolState.RCPT_TOSTATE){
+			
+			currentState=ProtocolState.REQ_DATA;
+			
+			System.err.println(DATA);
+			
+			printQueue.add(line);
+			
+		}else if(currentState==ProtocolState.REQ_DATA){
+			
+			printQueue.add(line);
+			currentState=ProtocolState.SEND_DATA;
+			
+		}else if(currentState==ProtocolState.SEND_DATA && line.startsWith("From: ")){
+			
+			currentState=ProtocolState.MAILFROMSTATE;
+			
+			printQueue.add(".");
+			
+			printQueue.add(MAIL_FROM+line.substring(line.indexOf(' ')));
+			
+		}else if(currentState==ProtocolState.SEND_DATA){
+			
+			printQueue.add(line);
+		}
 
 	}
 
 	private static void processServerResponse(String response) {
-		System.out.println(response);
+		if(response==null){
+			return;
+		}
+		printQueue.add(response);
 	}
 
 }
