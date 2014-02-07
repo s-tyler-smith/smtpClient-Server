@@ -10,6 +10,7 @@ import java.util.Queue;
 public class SMTP2 {
 
 	private static ProtocolState currentState;
+	
 	private static final String MAIL_FROM = "MAIL FROM:";
 	private static final String RCPT_TO = "RCPT TO:";
 	private static final String DATA = "DATA";
@@ -22,7 +23,6 @@ public class SMTP2 {
 	};
 
 	public static void main(String[] args) throws IOException {
-		// TODO Auto-generated method stub
 
 		currentState = ProtocolState.MAILFROMSTATE;
 
@@ -35,8 +35,7 @@ public class SMTP2 {
 		BufferedReader responseBuffer = new BufferedReader(
 				new InputStreamReader(System.in));
 
-		String nextFileLine = null;
-		String nextResponseLine = null;
+		String nextFileLine=null,nextResponseLine = null;
 
 		do {
 			if (currentState == ProtocolState.ERROR) {
@@ -51,11 +50,14 @@ public class SMTP2 {
 			} else if (currentState == ProtocolState.END_DATA) {
 
 				if (printQueue.size() > 0) {
+					
 					processFileInput(printQueue.poll());
 				}
 
 			} else {
+				
 				nextFileLine = fileBuffer.readLine();
+				
 				processFileInput(nextFileLine);
 			}
 
@@ -71,13 +73,12 @@ public class SMTP2 {
 		} while (nextFileLine != null && nextResponseLine != null);
 
 		fileBuffer.close();
+		
 		responseBuffer.close();
-
 	}
 
 	private static void processFileInput(String line) {
-		// if(line==null)return;
-		// System.out.println(line);
+
 		if (currentState == ProtocolState.MAILFROMSTATE
 				&& line.startsWith("From: ")) {
 
@@ -102,6 +103,7 @@ public class SMTP2 {
 			currentState = ProtocolState.END_DATA;
 
 			System.err.println(".");
+			
 			printQueue.add(MAIL_FROM + line.substring(line.indexOf(' ')));
 
 		} else if (currentState == ProtocolState.SEND_DATA) {
@@ -111,45 +113,55 @@ public class SMTP2 {
 		} else if (currentState == ProtocolState.END_DATA) {
 
 			System.err.println(line);
+			
 			currentState = ProtocolState.MAILFROMSTATE;
 		}
-
 	}
 
 	private static void processServerResponse(String response) {
 		if (response == null) {
 			return;
 		}
+		
 		if (currentState == ProtocolState.MAILFROMSTATE) {
 			if (response.equals("250 OK")) {
+				
 				System.err.println(response);
+				
 				currentState = ProtocolState.RCPT_TOSTATE;
 			} else {
+				
 				currentState = ProtocolState.ERROR;
 			}
 		} else if (currentState == ProtocolState.RCPT_TOSTATE) {
 			if (response.equals("250 OK")) {
+				
 				System.err.println(response);
+				
 				currentState = ProtocolState.REQ_DATA;
 			} else {
+				
 				currentState = ProtocolState.ERROR;
 			}
 		} else if (currentState == ProtocolState.REQ_DATA) {
 			if (response.equals("354")) {
+				
 				System.err.println(response);
+				
 				currentState = ProtocolState.SEND_DATA;
 			} else {
+				
 				currentState = ProtocolState.ERROR;
 			}
 
 		} else if (currentState == ProtocolState.END_DATA) {
 			if (response.equals("250 OK")) {
+				
 				System.err.println(response);
 			} else {
+				
 				currentState = ProtocolState.ERROR;
 			}
-
 		}
-
 	}
 }
