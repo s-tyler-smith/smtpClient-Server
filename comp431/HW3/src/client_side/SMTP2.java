@@ -82,19 +82,19 @@ public class SMTP2 {
 		if (currentState == ProtocolState.MAILFROMSTATE
 				&& line.startsWith("From: ")) {
 
-			System.err.println(MAIL_FROM + line.substring(line.indexOf(' ')));
+			System.out.println(MAIL_FROM + line.substring(line.indexOf(' ')));
 
 		} else if (currentState == ProtocolState.RCPT_TOSTATE
 				&& line.startsWith("To: ")) {
 
-			System.err.println(RCPT_TO + line.substring(line.indexOf(' ')));
+			System.out.println(RCPT_TO + line.substring(line.indexOf(' ')));
 
 		} else if (currentState == ProtocolState.REQ_DATA) {
 
-			System.err.println(line);
+			System.out.println(line);
 
 		} else if (currentState == ProtocolState.SEND_DATA && line == null) {
-			System.err.println(".");
+			System.out.println(".");
 			currentState = ProtocolState.END_DATA;
 
 		} else if (currentState == ProtocolState.SEND_DATA
@@ -102,17 +102,17 @@ public class SMTP2 {
 
 			currentState = ProtocolState.END_DATA;
 
-			System.err.println(".");
+			System.out.println(".");
 			
 			printQueue.add(MAIL_FROM + line.substring(line.indexOf(' ')));
 
 		} else if (currentState == ProtocolState.SEND_DATA) {
 
-			System.err.println(line);
+			System.out.println(line);
 
 		} else if (currentState == ProtocolState.END_DATA) {
 
-			System.err.println(line);
+			System.out.println(line);
 			
 			currentState = ProtocolState.MAILFROMSTATE;
 		}
@@ -155,11 +155,7 @@ public class SMTP2 {
 			}
 
 		} else if (currentState == ProtocolState.END_DATA) {
-			if (response.startsWith("250 OK")) {
-				
-				System.err.println(response);
-			} else {
-				
+			if (!response.startsWith("250")) {
 				currentState = ProtocolState.ERROR;
 			}
 		}
