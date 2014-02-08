@@ -129,9 +129,11 @@ public class SMTP2 {
 				System.err.println(response);
 				
 				currentState = ProtocolState.RCPT_TOSTATE;
+				
 			} else {
 				
 				currentState = ProtocolState.ERROR;
+				
 			}
 		} else if (currentState == ProtocolState.RCPT_TOSTATE) {
 			if (response.startsWith("250")) {
