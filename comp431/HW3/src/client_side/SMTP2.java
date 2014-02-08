@@ -124,7 +124,7 @@ public class SMTP2 {
 		}
 		
 		if (currentState == ProtocolState.MAILFROMSTATE) {
-			if (response.equals("250 OK")) {
+			if (response.startsWith("250")) {
 				
 				System.err.println(response);
 				
@@ -134,7 +134,7 @@ public class SMTP2 {
 				currentState = ProtocolState.ERROR;
 			}
 		} else if (currentState == ProtocolState.RCPT_TOSTATE) {
-			if (response.equals("250 OK")) {
+			if (response.startsWith("250")) {
 				
 				System.err.println(response);
 				
@@ -144,7 +144,7 @@ public class SMTP2 {
 				currentState = ProtocolState.ERROR;
 			}
 		} else if (currentState == ProtocolState.REQ_DATA) {
-			if (response.equals("354")) {
+			if (response.startsWith("354")) {
 				
 				System.err.println(response);
 				
@@ -155,7 +155,7 @@ public class SMTP2 {
 			}
 
 		} else if (currentState == ProtocolState.END_DATA) {
-			if (response.equals("250 OK")) {
+			if (response.startsWith("250 OK")) {
 				
 				System.err.println(response);
 			} else {
