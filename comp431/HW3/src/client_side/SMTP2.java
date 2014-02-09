@@ -38,11 +38,7 @@ public class SMTP2 {
 		String nextFileLine=null,nextResponseLine = null;
 
 		do {
-			if (currentState == ProtocolState.ERROR) {
-				System.err.println("QUIT");
-				break;
-			}
-
+		
 			if ((currentState == ProtocolState.REQ_DATA)) {
 
 				processFileInput(DATA);
@@ -71,10 +67,13 @@ public class SMTP2 {
 			}
 
 		} while (nextFileLine != null && nextResponseLine != null);
-
+		
+		
 		fileBuffer.close();
 		
 		responseBuffer.close();
+		
+		endProgram(ProtocolState.END_DATA);
 	}
 
 	private static void processFileInput(String line) {
@@ -96,7 +95,6 @@ public class SMTP2 {
 		} else if (currentState == ProtocolState.SEND_DATA && line == null) {
 			System.out.println(".");
 			currentState = ProtocolState.END_DATA;
-
 		} else if (currentState == ProtocolState.SEND_DATA
 				&& line.startsWith("From: ")) {
 
@@ -132,7 +130,7 @@ public class SMTP2 {
 				
 			} else {
 				
-				currentState = ProtocolState.ERROR;
+				endProgram(ProtocolState.ERROR);
 				
 			}
 		} else if (currentState == ProtocolState.RCPT_TOSTATE) {
@@ -143,7 +141,7 @@ public class SMTP2 {
 				currentState = ProtocolState.REQ_DATA;
 			} else {
 				
-				currentState = ProtocolState.ERROR;
+				endProgram(ProtocolState.ERROR);
 			}
 		} else if (currentState == ProtocolState.REQ_DATA) {
 			if (response.startsWith("354")) {
@@ -153,13 +151,26 @@ public class SMTP2 {
 				currentState = ProtocolState.SEND_DATA;
 			} else {
 				
-				currentState = ProtocolState.ERROR;
+				endProgram(ProtocolState.ERROR);
 			}
 
 		} else if (currentState == ProtocolState.END_DATA) {
+			
 			if (!response.startsWith("250")) {
-				currentState = ProtocolState.ERROR;
+				endProgram(ProtocolState.ERROR);
 			}
 		}
 	}
+	
+	private static void endProgram(ProtocolState state){
+		
+		if(state==ProtocolState.ERROR){
+			System.out.println("EQUIT");
+			System.exit(1);
+		}else{
+			System.out.println("QUIT");
+			System.exit(0);
+		}
+	}
 }
+
