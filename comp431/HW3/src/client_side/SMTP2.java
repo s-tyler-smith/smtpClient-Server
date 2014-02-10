@@ -104,8 +104,7 @@ public class SMTP2 {
 
 			System.out.println(MAIL_FROM + line.substring(line.indexOf(' ')));
 
-		} else if (currentState == ProtocolState.RCPT_TOSTATE
-				&& line.matches("To: "+PATH)) {
+		} else if (currentState == ProtocolState.RCPT_TOSTATE && line.matches("To: "+PATH)) {
 
 			System.out.println(RCPT_TO + line.substring(line.indexOf(' ')));
 
