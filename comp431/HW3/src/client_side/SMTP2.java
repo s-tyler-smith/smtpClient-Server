@@ -115,8 +115,7 @@ public class SMTP2 {
 		} else if (currentState == ProtocolState.SEND_DATA && line == null) {
 			System.out.println(".");
 			currentState = ProtocolState.END_DATA;
-		} else if (currentState == ProtocolState.SEND_DATA
-				&& line.matches("From: "+PATH)) {
+		} else if (currentState == ProtocolState.SEND_DATA && line.matches("From: "+PATH)) {
 
 			currentState = ProtocolState.END_DATA;
 
