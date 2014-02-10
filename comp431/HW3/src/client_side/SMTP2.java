@@ -9,42 +9,61 @@ import java.util.Queue;
 
 public class SMTP2 {
 
-	private static ProtocolState currentState;
 	
+	//Strings I use for generating/comparing commands
 	private static final String MAIL_FROM = "MAIL FROM:";
 	private static final String RCPT_TO = "RCPT TO:";
 	private static final String DATA = "DATA";
+	private static final String PATH="<[^<>()\\.,\\\\:@;\\s\\[\\]\"]+@[a-zA-Z][a-zA-Z\\d]+(\\.{1}[a-zA-Z][a-zA-Z\\d]+)*>";
 
+	//queue for storing commands to print-I only use it when a file has more than one mail from command
 	private static Queue<String> printQueue = new LinkedList<String>();
-
-	// enum for maintaining state
+	
+	//readers for file reading and input response reading
+	private static BufferedReader responseBuffer;
+	private static BufferedReader fileBuffer;
+	
+	// enum for maintaining protocol state
 	private enum ProtocolState {
 		MAILFROMSTATE, RCPT_TOSTATE, REQ_DATA, SEND_DATA, END_DATA, ERROR
 	};
+	
+	//variable for representing currentState
+	private static ProtocolState currentState;
 
 	public static void main(String[] args) throws IOException {
-
+		
+		//start in mail from state
 		currentState = ProtocolState.MAILFROMSTATE;
 
+		//take in a single file as input
 		// BufferedReader fileBuffer=new BufferedReader(new
 		// FileReader(args[0]));
-		BufferedReader fileBuffer = new BufferedReader(new FileReader(
+		fileBuffer = new BufferedReader(new FileReader(
 				"forward/TONYbO@CS.txt"));
 
 		// buffer for reading input
-		BufferedReader responseBuffer = new BufferedReader(
+		responseBuffer = new BufferedReader(
 				new InputStreamReader(System.in));
-
+		
+		//strings for holding readline method calls
 		String nextFileLine=null,nextResponseLine = null;
 
 		do {
-		
+			
+			/* First check the state before determining what to
+			 * read from the file
+			 */
 			if ((currentState == ProtocolState.REQ_DATA)) {
-
+				
+				//just send the "Data" command and don't read
+				//another line from the file
 				processFileInput(DATA);
 
 			} else if (currentState == ProtocolState.END_DATA) {
-
+				
+				//if in the end sate check if another mail from command
+				//was saved/if so print it out and continue
 				if (printQueue.size() > 0) {
 					
 					processFileInput(printQueue.poll());
@@ -52,13 +71,19 @@ public class SMTP2 {
 
 			} else {
 				
+				//normal case where we simply read a line of the file
+				//and process it
 				nextFileLine = fileBuffer.readLine();
 				
 				processFileInput(nextFileLine);
 			}
-
-			// printNextCommand();
-
+			
+			/* after reading a line from the file
+			 * we want to ask wait for a response from
+			 * the "server" as long as we are not in
+			 * send_data state meaning we are printing out 
+			 * the data of the message
+			 */
 			if (!(currentState == ProtocolState.SEND_DATA)) {
 
 				nextResponseLine = responseBuffer.readLine();
@@ -68,11 +93,7 @@ public class SMTP2 {
 
 		} while (nextFileLine != null && nextResponseLine != null);
 		
-		
-		fileBuffer.close();
-		
-		responseBuffer.close();
-		
+		//end the program
 		endProgram(ProtocolState.END_DATA);
 	}
 
@@ -84,7 +105,7 @@ public class SMTP2 {
 			System.out.println(MAIL_FROM + line.substring(line.indexOf(' ')));
 
 		} else if (currentState == ProtocolState.RCPT_TOSTATE
-				&& line.startsWith("To: ")) {
+				&& line.matches("To: "+PATH)) {
 
 			System.out.println(RCPT_TO + line.substring(line.indexOf(' ')));
 
@@ -96,7 +117,7 @@ public class SMTP2 {
 			System.out.println(".");
 			currentState = ProtocolState.END_DATA;
 		} else if (currentState == ProtocolState.SEND_DATA
-				&& line.startsWith("From: ")) {
+				&& line.matches("From: "+PATH)) {
 
 			currentState = ProtocolState.END_DATA;
 
@@ -122,7 +143,7 @@ public class SMTP2 {
 		}
 		
 		if (currentState == ProtocolState.MAILFROMSTATE) {
-			if (response.startsWith("250")) {
+			if (response.startsWith("250 ")) {
 				
 				System.err.println(response);
 				
@@ -134,7 +155,7 @@ public class SMTP2 {
 				
 			}
 		} else if (currentState == ProtocolState.RCPT_TOSTATE) {
-			if (response.startsWith("250")) {
+			if (response.startsWith("250 ")) {
 				
 				System.err.println(response);
 				
@@ -144,7 +165,7 @@ public class SMTP2 {
 				endProgram(ProtocolState.ERROR);
 			}
 		} else if (currentState == ProtocolState.REQ_DATA) {
-			if (response.startsWith("354")) {
+			if (response.startsWith("354 ")) {
 				
 				System.err.println(response);
 				
@@ -156,7 +177,8 @@ public class SMTP2 {
 
 		} else if (currentState == ProtocolState.END_DATA) {
 			
-			if (!response.startsWith("250")) {
+			if (!response.startsWith("250 ")) {
+				
 				endProgram(ProtocolState.ERROR);
 			}
 		}
@@ -165,10 +187,35 @@ public class SMTP2 {
 	private static void endProgram(ProtocolState state){
 		
 		if(state==ProtocolState.ERROR){
+			
 			System.out.println("EQUIT");
+			
+			try {
+				
+				fileBuffer.close();
+				
+				responseBuffer.close();
+				
+			} catch (Exception e) {
+				
+				e.printStackTrace();
+			}
+			
 			System.exit(1);
 		}else{
 			System.out.println("QUIT");
+			
+			try {
+				
+				fileBuffer.close();
+				
+				responseBuffer.close();
+				
+			} catch (Exception e) {
+				
+				e.printStackTrace();
+			}
+			
 			System.exit(0);
 		}
 	}
