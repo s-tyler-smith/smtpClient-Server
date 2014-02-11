@@ -9,129 +9,156 @@ import java.util.Queue;
 
 public class SMTP2 {
 
-	
-	//Strings I use for generating/comparing commands
+	// Strings I use for generating/comparing commands
 	private static final String MAIL_FROM = "MAIL FROM:";
 	private static final String RCPT_TO = "RCPT TO:";
 	private static final String DATA = "DATA";
-	private static final String PATH="<[^<>()\\.,\\\\:@;\\s\\[\\]\"]+@[a-zA-Z][a-zA-Z\\d]+(\\.{1}[a-zA-Z][a-zA-Z\\d]+)*>";
 
-	//queue for storing commands to print-I only use it when a file has more than one mail from command
+	private static final String FPATH = "From: <[^<>()\\.,\\\\:@;\\s\\[\\]\"]+@[a-zA-Z][a-zA-Z\\d]+(\\.{1}[a-zA-Z][a-zA-Z\\d]+)*>";
+
+	private static final String TPATH = "To: <[^<>()\\.,\\\\:@;\\s\\[\\]\"]+@[a-zA-Z][a-zA-Z\\d]+(\\.{1}[a-zA-Z][a-zA-Z\\d]+)*>";
+
+	private static final String OK_STATEMENT = "( |\t)*250[^\\d].*";
+	private static final String DATA_SEND_STATEMENT = "( |\t)*354[^\\d].*";
+
+	// queue for storing commands to print-I only use it when a file has more
+	// than one mail from command
 	private static Queue<String> printQueue = new LinkedList<String>();
-	
-	//readers for file reading and input response reading
-	private static BufferedReader responseBuffer;
+
+	// readers for file reading and input response reading
 	private static BufferedReader fileBuffer;
-	
+
 	// enum for maintaining protocol state
 	private enum ProtocolState {
 		MAILFROMSTATE, RCPT_TOSTATE, REQ_DATA, SEND_DATA, END_DATA, ERROR
 	};
-	
-	//variable for representing currentState
+
+	// variable for representing currentState
 	private static ProtocolState currentState;
 
 	public static void main(String[] args) throws IOException {
-		
-		//start in mail from state
+
+		// start in mail from state
 		currentState = ProtocolState.MAILFROMSTATE;
 
-		//take in a single file as input
+		// take in a single file as input
 		// BufferedReader fileBuffer=new BufferedReader(new
 		// FileReader(args[0]));
-		fileBuffer = new BufferedReader(new FileReader(
-				"forward/TONYbO@CS.txt"));
+		fileBuffer = new BufferedReader(new FileReader("forward/TONYbO@CS.txt"));
 
 		// buffer for reading input
-		responseBuffer = new BufferedReader(
+		BufferedReader responseBuffer = new BufferedReader(
 				new InputStreamReader(System.in));
-		
-		//strings for holding readline method calls
-		String nextFileLine=null,nextResponseLine = null;
+
+		// strings for holding readline method calls
+		String nextFileLine = null, nextResponseLine = null;
 
 		do {
-			
-			/* First check the state before determining what to
-			 * read from the file
+
+			/*
+			 * First check the state before determining what to read from the
+			 * file
 			 */
 			if ((currentState == ProtocolState.REQ_DATA)) {
-				
-				//just send the "Data" command and don't read
-				//another line from the file
+
+				// just send the "Data" command and don't read
+				// another line from the file
 				processFileInput(DATA);
 
 			} else if (currentState == ProtocolState.END_DATA) {
-				
-				//if in the end sate check if another mail from command
-				//was saved/if so print it out and continue
+
+				// if in the end sate check if another mail from command
+				// was saved/if so print it out and continue
 				if (printQueue.size() > 0) {
-					
+
 					processFileInput(printQueue.poll());
 				}
 
 			} else {
-				
-				//normal case where we simply read a line of the file
-				//and process it
+
+				// normal case where we simply read a line of the file
+				// and process it
 				nextFileLine = fileBuffer.readLine();
-				
+
 				processFileInput(nextFileLine);
 			}
-			
-			/* after reading a line from the file
-			 * we want to ask wait for a response from
-			 * the "server" as long as we are not in
-			 * send_data state meaning we are printing out 
-			 * the data of the message
+
+			/*
+			 * after reading a line from the file we want to ask wait for a
+			 * response from the "server" as long as we are not in send_data
+			 * state meaning we are printing out the data of the message
 			 */
 			if (!(currentState == ProtocolState.SEND_DATA)) {
 
 				nextResponseLine = responseBuffer.readLine();
+				System.err.println(nextResponseLine);
 
 				processServerResponse(nextResponseLine);
 			}
 
 		} while (nextFileLine != null && nextResponseLine != null);
-		
-		//end the program
+
+		// end the program
 		endProgram(ProtocolState.END_DATA);
 	}
 
 	private static void processFileInput(String line) {
 
-		if (currentState == ProtocolState.MAILFROMSTATE
-				&& line.startsWith("From: ")) {
+		switch (currentState) {
 
-			System.out.println(MAIL_FROM + line.substring(line.indexOf(' ')));
+		case MAILFROMSTATE:
+			if (line.matches(FPATH)) {
+				// generate command
+				System.out.println(MAIL_FROM
+						+ line.substring(line.indexOf(' ')));
+			}
+			break;
+		case RCPT_TOSTATE:
+			if (line.matches(TPATH)) {
+				// generate command
+				System.out.println(RCPT_TO + line.substring(line.indexOf(' ')));
+			}
+			break;
 
-		} else if (currentState == ProtocolState.RCPT_TOSTATE && line.matches("To: "+PATH)) {
+		case REQ_DATA:
+			// create DATA command
+			System.out.println(DATA);
 
-			System.out.println(RCPT_TO + line.substring(line.indexOf(' ')));
+			break;
 
-		} else if (currentState == ProtocolState.REQ_DATA) {
+		case SEND_DATA:
+
+			if (line == null) {
+
+				currentState = ProtocolState.END_DATA;
+
+				System.out.println(".");
+
+			} else if (line.matches(FPATH)) {
+
+				currentState = ProtocolState.END_DATA;
+
+				System.out.println(".");
+
+				printQueue.add(MAIL_FROM + line.substring(line.indexOf(' ')));
+
+			} else {
+
+				System.out.println(line);
+			}
+			break;
+
+		case END_DATA:
 
 			System.out.println(line);
 
-		} else if (currentState == ProtocolState.SEND_DATA && line == null) {
-			System.out.println(".");
-			currentState = ProtocolState.END_DATA;
-		} else if (currentState == ProtocolState.SEND_DATA && line.matches("From: "+PATH)) {
-
-			currentState = ProtocolState.END_DATA;
-
-			System.out.println(".");
-			
-			printQueue.add(MAIL_FROM + line.substring(line.indexOf(' ')));
-
-		} else if (currentState == ProtocolState.SEND_DATA) {
-
-			System.out.println(line);
-
-		} else if (currentState == ProtocolState.END_DATA) {
-
-			System.out.println(line);
-			
 			currentState = ProtocolState.MAILFROMSTATE;
+
+			break;
+
+		default:
+
+			break;
 		}
 	}
 
@@ -139,81 +166,92 @@ public class SMTP2 {
 		if (response == null) {
 			return;
 		}
-		
-		if (currentState == ProtocolState.MAILFROMSTATE) {
-			if (response.startsWith("250 ")) {
-				
-				System.err.println(response);
-				
+
+		switch (currentState) {
+
+		case MAILFROMSTATE:
+
+			if (response.matches(OK_STATEMENT)) {
+
 				currentState = ProtocolState.RCPT_TOSTATE;
-				
+
 			} else {
-				
+
 				endProgram(ProtocolState.ERROR);
-				
+
 			}
-		} else if (currentState == ProtocolState.RCPT_TOSTATE) {
-			if (response.startsWith("250 ")) {
-				
-				System.err.println(response);
-				
+			break;
+
+		case RCPT_TOSTATE:
+
+			if (response.matches(OK_STATEMENT)) {
+
 				currentState = ProtocolState.REQ_DATA;
+
 			} else {
-				
+
 				endProgram(ProtocolState.ERROR);
 			}
-		} else if (currentState == ProtocolState.REQ_DATA) {
-			if (response.startsWith("354 ")) {
-				
-				System.err.println(response);
-				
+			break;
+
+		case REQ_DATA:
+
+			if (response.matches(DATA_SEND_STATEMENT)) {
+
 				currentState = ProtocolState.SEND_DATA;
+
 			} else {
-				
+
 				endProgram(ProtocolState.ERROR);
+			}
+			break;
+
+		case END_DATA:
+
+			if (!response.matches(OK_STATEMENT)) {
+
+				endProgram(ProtocolState.ERROR);
+
 			}
 
-		} else if (currentState == ProtocolState.END_DATA) {
-			
-			if (!response.startsWith("250 ")) {
-				
-				endProgram(ProtocolState.ERROR);
-			}
+			break;
+
+		default:
+
+			break;
 		}
 	}
-	
-	private static void endProgram(ProtocolState state){
-		
-		if(state==ProtocolState.ERROR){
-			
+
+	private static void endProgram(ProtocolState state) {
+
+		if (state == ProtocolState.ERROR) {
+
 			System.out.println("EQUIT");
-			
+
 			try {
-				
+
 				fileBuffer.close();
-				
-				responseBuffer.close();
-				
+
 			} catch (Exception e) {
-				
+
 				e.printStackTrace();
 			}
-			
+
 			System.exit(1);
-		}else{
+
+		} else {
+
 			System.out.println("QUIT");
-			
+
 			try {
-				
+
 				fileBuffer.close();
-				
-				responseBuffer.close();
-				
+
 			} catch (Exception e) {
-				
+
 				e.printStackTrace();
 			}
-			
+
 			System.exit(0);
 		}
 	}
