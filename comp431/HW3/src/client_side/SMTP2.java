@@ -44,7 +44,6 @@ public class SMTP2 {
 			endProgram(ProtocolState.ERROR);
 		}
 
-		
 		try {
 			// start in mail from state
 			currentState = ProtocolState.MAILFROMSTATE;
@@ -125,6 +124,7 @@ public class SMTP2 {
 						+ line.substring(line.indexOf(' ')));
 			}
 			break;
+			
 		case RCPT_TOSTATE:
 			if (line.matches(TPATH)) {
 				// generate command
