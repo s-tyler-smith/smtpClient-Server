@@ -39,15 +39,16 @@ public class SMTP2 {
 
 	public static void main(String[] args) {
 
-		if ((args[0] == null)) {
+		if ((args == null) || args.length<=0) {
 
 			endProgram(ProtocolState.ERROR);
 		}
 
-		// start in mail from state
-		currentState = ProtocolState.MAILFROMSTATE;
-
+		
 		try {
+			// start in mail from state
+			currentState = ProtocolState.MAILFROMSTATE;
+			
 			// take in a single file as input
 			 fileBuffer=new BufferedReader(new
 			 FileReader(args[0]));
@@ -111,7 +112,6 @@ public class SMTP2 {
 		} catch (Exception e) {
 			endProgram(ProtocolState.ERROR);
 		}
-
 	}
 
 	private static void processFileInput(String line) {
@@ -241,12 +241,10 @@ public class SMTP2 {
 			System.out.println(QUIT);
 
 			try {
-
+				
 				fileBuffer.close();
 
 			} catch (Exception e) {
-
-				e.printStackTrace();
 			}
 
 			System.exit(1);
@@ -260,8 +258,6 @@ public class SMTP2 {
 				fileBuffer.close();
 
 			} catch (Exception e) {
-
-				e.printStackTrace();
 			}
 
 			System.exit(0);
