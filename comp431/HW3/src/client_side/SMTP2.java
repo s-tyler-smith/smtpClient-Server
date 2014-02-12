@@ -19,7 +19,8 @@ public class SMTP2 {
 	private static final String FPATH = "From: <[^<>()\\.,\\\\:@;\\s\\[\\]\"]+@[a-zA-Z][a-zA-Z\\d]+(\\.{1}[a-zA-Z][a-zA-Z\\d]+)*>";
 	private static final String TPATH = "To: <[^<>()\\.,\\\\:@;\\s\\[\\]\"]+@[a-zA-Z][a-zA-Z\\d]+(\\.{1}[a-zA-Z][a-zA-Z\\d]+)*>";
 
-	//expected responses
+	//expected response messages,I expect any amount of whitespace followed
+	//by, 250 or 354 respectfully, followed by a non-digit followed by anything
 	private static final String OK_STATEMENT = "( |\t)*250[^\\d].*";
 	private static final String DATA_SEND_STATEMENT = "( |\t)*354[^\\d].*";
 
